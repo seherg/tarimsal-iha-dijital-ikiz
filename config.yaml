@@ -1,0 +1,72 @@
+# Tarimsal IHA Dijital Ikizi v2.0 - Merkezi Konfigurasyon
+# Bu dosyadan tum parametreleri degistirebilirsiniz
+
+# ── Sistem Modu ───────────────────────────────────────────────
+# simulasyon : SITL/AirSim baglantisi (digital_twin_v2.py)
+# matematiksel: Bagimsiz matematiksel model (run_form31_scenarios.py vb.)
+# donanim    : Gercek fiziksel drone (gelecek entegrasyon)
+sistem:
+  mod: matematiksel
+
+# ── IHA Parametreleri ─────────────────────────────────────────
+iha:
+  m_frame_g: 1500.0        # Govde kutle (gram)
+  m_payload_g: 1000.0      # Baslangic ilac yuku (gram)
+  flow_rate_gs: 16.7       # Ilac tuketim hizi (gram/saniye)
+  cruise_speed_ms: 5.0     # Seyir hizi (m/s)
+  takeoff_alt_m: 50        # Kalkis yuksekligi (metre)
+  target_distance_m: 500   # Hedef mesafe (metre)
+
+# ── Rotor Parametreleri ───────────────────────────────────────
+# Kaynak: DJI Agras T10 ve benzeri tarimsal IHA datasheet'leri
+# Gercek drone baglandiginda bu degerler guncellenir, kod degismez
+rotor:
+  sayi: 6                  # Rotor sayisi (hexarotor)
+  cap_m: 0.267             # Tek rotor capi (metre) — T-Motor MN4014 referans
+  disk_alani_m2: 0.056     # Tek rotor disk alani = pi * (cap/2)^2
+  ref_alan_m2: 0.05        # Govde referans alani (aerodynamik direnc icin)
+  eta: 0.75                # Motor + pervane toplam verimlilik katsayisi
+  # NOT: Gercek drone ile kalibrasyon yapildiginda eta guncellenir.
+  # Literatur referansi: Abdilla et al. (2015), Gatti et al. (2015)
+
+# ── Batarya Parametreleri ─────────────────────────────────────
+batarya:
+  # Simülasyon modu (matematiksel model)
+  kapasite_wh: 9.5         # SITL ucus verisinden kalibre edilmis deger
+  nominal_v: 12.6          # Nominal voltaj (3S LiPo: 3 x 4.2V)
+  ic_direnc_ohm: 0.1       # Tam sarjda ic direnc (Ohm)
+  lipo_koruma_v: 9.0       # Alt voltaj siniri (3S: 3 x 3.0V)
+  kritik_esik_pct: 20      # Bu altinda Peukert etkisi — ic direnc artar
+
+  # Gercek donanim modu (fiziksel batarya bagli oldugunda aktif olur)
+  # Tattu 22000mAh 6S LiPo referans alinmistir (tarimsal IHA standardi)
+  gercek_kapasite_wh: 97.2 # 22.2V x 4.4Ah (6S konfigurasyonu)
+  gercek_nominal_v: 22.2   # 6S LiPo nominal voltaj
+  # Kalibrasyon: Tattu datasheet desarj egrisi fit edilecek
+  # Referans: Tattu 22000mAh 6S 25C LiPo datasheet (public)
+
+# ── Ruzgar Parametreleri ──────────────────────────────────────
+ruzgar:
+  baslangic_ms: 3.0        # Baslangic ruzgar hizi (m/s)
+  olay_hizi_ms: 12.0       # Ruzgar olayi hizi (m/s)
+  olay_zamani_s: 120       # Kacinci saniyede olay tetiklensin
+
+# ── Guvenlik Parametreleri ────────────────────────────────────
+guvenlik:
+  pnr_marji_pct: 15        # PNR guvenlik marji (%)
+  dead_reckoning_s: 2.0    # Veri kesintisi esigi (saniye)
+
+# ── Log Parametreleri ─────────────────────────────────────────
+log:
+  dosya: logs/dt_log_v2.csv
+  plot_dosya: plots/ucus_analizi.png
+
+# ── Donanim Parametreleri (gelecek entegrasyon) ───────────────
+# sistem.mod = donanim oldugunda bu parametreler aktif olur
+donanim:
+  tank_sensor_pin: 17      # GPIO pin (Raspberry Pi)
+  anemometre_port: /dev/ttyUSB1
+  perdeli_tank: true       # Baffle'li tank mi?
+  max_payload_g: 10000     # Gercek ilac kapasitesi (10 litre = 10000g)
+  flow_rate_gs: 166.7      # Gercek pompa debisi (gram/saniye)
+  mavlink_adres: udpin:0.0.0.0:14551  # Gercek drone MAVLink adresi

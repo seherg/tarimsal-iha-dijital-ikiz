@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\shrgu\\\\Desktop\\\\seher\\\\digital_twin\\\\digital_twin\\\\\" | Where-Object { $_.Extension -match \"\\\\.\\(pdf|docx|doc|txt|md\\)$\" } | Sort-Object LastWriteTime -Descending | Select-Object Name, LastWriteTime)",
+      "Bash(dt_env\\\\Scripts\\\\python.exe plot_C_vs_D.py)",
+      "Bash(dt_env\\\\Scripts\\\\python.exe -m pytest test_models.py test_dead_reckoning.py -v --tb=short)",
+      "Bash(dt_env\\\\Scripts\\\\activate)",
+      "Bash(python -m pytest test_models.py test_dead_reckoning.py -v --tb=short)",
+      "Bash(.\\\\dt_env\\\\Scripts\\\\python.exe *)",
+      "PowerShell(.\\\\dt_env\\\\Scripts\\\\python.exe scenario_runner.py 2>&1 | Select-Object -Last 20)",
+      "PowerShell(.\\\\dt_env\\\\Scripts\\\\python.exe generate_report.py 2>&1)",
+      "PowerShell(Start-Process \"C:\\\\Users\\\\shrgu\\\\Desktop\\\\seher\\\\digital_twin\\\\digital_twin\\\\logs\\\\rapor_20260601_110247.html\")",
+      "Bash(git init *)",
+      "Bash(git add *)"
+    ]
+  }
+}
