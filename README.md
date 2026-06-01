@@ -43,8 +43,7 @@ python plot_C_vs_D.py
 python generate_report.py
 
 # Birim testler
-python -m pytest test_models.py -v --tb=short        # 27 test
-python -m pytest test_dead_reckoning.py -v --tb=short # 13 test
+python -m pytest test_models.py test_dead_reckoning.py -v --tb=short  # 51 test
 ```
 
 Çalışma modu `config.yaml` → `sistem.mod` anahtarıyla belirlenir:
@@ -74,7 +73,7 @@ python -m pytest test_dead_reckoning.py -v --tb=short # 13 test
 │   ├── wind_model.py        # Rüzgar profilleri
 │   ├── dead_reckoning.py    # GPS yedek konum tahmini
 │   ├── re_simulation.py     # PNR yeniden simülasyon motoru
-│   └── dt_logger.py         # CSV loglama
+│   └── dt_logger.py         # Yapısal loglama (dosya + terminal, seviyeli)
 ├── logs/                    # Uçuş logları (CSV) ve HTML raporlar
 └── plots/                   # Üretilen PNG grafikler
 ```
@@ -88,12 +87,44 @@ python -m pytest test_dead_reckoning.py -v --tb=short # 13 test
 | C | Sabit | 3 / 7 / 12 m/s | Yalnızca rüzgar etkisi |
 | D | Dinamik | 3 / 7 /12 m/s | Gerçekçi operasyonel koşul |
 | E | Dinamik | Değişken | PNR karar doğruluk testi (3 tekrar) |
+| F1 | Dinamik | 3 m/s | Yeni batarya (0 cycle) |
+| F2 | Dinamik | 3 m/s | Orta yaşlı batarya (300 cycle) |
+| F3 | Dinamik | 3 m/s | Yaşlı batarya (500 cycle) |
 
 **Başarı kriteri:** PNR anında kalan enerji ≥ eve dönüş için gereken minimum enerji.
 
 ## Ana Bulgular
 
-- Dinamik kütle modeli (B vs. A), sabit kütle varsayımına kıyasla PNR noktasını ortalama ~40 saniye daha erken tetikler — ilaç azaldıkça drone hafifler ve enerji tüketimi değişir.
-- 12 m/s rüzgarda (Senaryo C/D) menzil %30'a kadar düşebilir; PNR marjı %15 güvenlik payıyla tüm denemelerde sağlandı.
-- Dead reckoning, 2 saniyelik GPS kaybında konum hatasını simüle edilen 500 m parkurda 3 m'nin altında tutar.
-- Senaryo E'de 3 tekrarda PNR başarı kriteri %100 karşılandı.
+- **Senaryo A vs B:** Dinamik kütle modeli PNR kararını 168 saniye geciktiriyor (+%291).
+  Sabit kütle varsayımı görevi gereksiz yere kısaltıyor.
+- **Senaryo C vs D:** Statik kütle modeli RTH kararını ortalama 98 saniye erken veriyor.
+  Görev süresinin %55.9'u boşa gidiyor.
+  3 m/s rüzgarda +151s, 7 m/s'de +106s, 12 m/s'de +37s fark.
+- **Senaryo F (SoH):** 300 cycle sonra görev süresi %20 azalıyor, 500 cycle'da %32 azalıyor.
+  Eski batarya PNR'ı 77 saniye daha erken tetikliyor.
+- **Dead reckoning:** 2 saniyelik GPS kaybında konum hatası 500 m parkurda 15 m altında kalıyor.
+- **51/51 test** başarıyla geçiyor.
+
+## Tam Pipeline
+
+Projeyi sıfırdan çalıştırmak için:
+
+```bash
+# 1. Testler
+python -m pytest test_models.py test_dead_reckoning.py -v
+
+# 2. Tez senaryoları (A-F)
+python scenario_runner.py
+
+# 3. Rüzgar senaryoları
+python run_wind_scenarios.py
+
+# 4. Görselleştirmeler
+python plot_C_vs_D.py
+python plot_flight_path.py
+python plot_sloshing.py
+
+# 5. Kapsamlı HTML rapor
+python generate_report.py
+# → logs/rapor_*.html dosyasını tarayıcıda aç
+```
